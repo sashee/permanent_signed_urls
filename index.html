@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			[...document.querySelectorAll(".create-permalink")].forEach((e) => {
+				const key = decodeURIComponent(e.dataset.permalinkKey);
+
+				e.addEventListener("click", async () => {
+					const res = await fetch("create_permalink", {
+						method: "POST",
+						body: JSON.stringify({key}),
+					});
+					if (!res.ok) {
+						throw res;
+					}
+					location.reload();
+				})
+			});
+			[...document.querySelectorAll(".revoke")].forEach((e) => {
+				const token = e.dataset.token;
+
+				e.addEventListener("click", async () => {
+					const res = await fetch(`revoke/${token}`, {
+						method: "PUT",
+					});
+					if (!res.ok) {
+						throw res;
+					}
+					location.reload();
+				})
+			})
+		});
+	</script>
+	<style>
+		table {
+			border-collapse: collapse;
+		}
+		table tbody td {
+			padding-right: 20px;
+			padding-left: 20px;
+			padding-top: 10px;
+			padding-bottom: 10px;
+		}
+		table tbody tr:nth-child(even) {
+			background-color: #eeeeee;
+		}
+	</style>
+</head>
+<body>
+	<p>This is a demonstration project to show how signed URLs can be used in a way to provide permanent access to an object<p>
+	<p>This works by storing permalinks in a DynamoDB table with a token and provide a URL to access them<p>
+	<p>The backend then signs the URL for the object and returns a 303 redirect<p>
+	<p>This way signed URLs are used to download the files but they are still short-lived<p>
+	<p>A revocation is also possible by removing the entry from the table</p>
+	<p>To use this demo, generate a permalink for the files in the bucket using the "Create permalink" button<p>
+	<p>This generates a permalink and reloads the page<p>
+	<p>The second table shows the available permalinks. You can open the file using the link or remove it with the button</p>
+	<h2>Bucket contents</h2>
+	<table class="files">
+		<thead>
+			<tr>
+				<th>Key</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>$$FILES_CONTENTS$$</tbody>
+	</table>
+	<h2>Permalinks</h2>
+	<table class="permalinks">
+		<thead>
+			<tr>
+				<th>Permalink</th>
+				<th>Key</th>
+				<th>Revoke</th>
+			</tr>
+			<tbody>$$PERMALINKS_CONTENTS$$</tbody>
+		</thead>
+	</table>
+</body>
+</html>
