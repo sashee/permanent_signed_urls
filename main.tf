@@ -10,12 +10,12 @@ resource "aws_s3_bucket" "bucket" {
 resource "aws_s3_bucket_object" "object" {
   for_each = toset(["tolstoy.pdf", "davinci.pdf"])
 
-  key    = each.value
-  source = "${path.module}/${each.value}"
-  bucket = aws_s3_bucket.bucket.bucket
-  etag   = filemd5("${path.module}/${each.value}")
-	content_disposition = "inline"
-	content_type = "application/pdf"
+  key                 = each.value
+  source              = "${path.module}/${each.value}"
+  bucket              = aws_s3_bucket.bucket.bucket
+  etag                = filemd5("${path.module}/${each.value}")
+  content_disposition = "inline"
+  content_type        = "application/pdf"
 }
 
 # DDB
