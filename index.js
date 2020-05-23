@@ -11,7 +11,7 @@ module.exports.handler = async (event) => {
 	const permalinkPath = /^\/link\/(?<token>[^/]*)$/;
 	const revokePermalinkPath = /^\/revoke\/(?<token>[^/]*)$/;
 
-	if (event.path === "/") {
+	if (event.requestContext.http.path === "/") {
 		const [html, files, permalinksTable] = await Promise.all([
 			fs.readFile(__dirname+"/index.html", "utf8"),
 			(async () => {
@@ -35,7 +35,7 @@ module.exports.handler = async (event) => {
 
 				return items.Items.length > 0 ? items.Items.map(({Token: {S: Token}, Key: {S: Key}}) => `
 <tr>
-	<td><a target="_blank" href="https://${event.requestContext.domainName}/${event.requestContext.stage}/link/${Token}">Open</a></td>
+	<td><a target="_blank" href="https://${event.requestContext.domainName}/link/${Token}">Open</a></td>
 	<td>${Key}</td>
 	<td><button data-token="${Token}" class="revoke">Revoke</button></form>
 </td>
@@ -53,8 +53,8 @@ module.exports.handler = async (event) => {
 			},
 			body: htmlWithDebug,
 		};
-	} else if (event.path.match(permalinkPath)) {
-		const {token} = event.path.match(permalinkPath).groups;
+	} else if (event.requestContext.http.path.match(permalinkPath)) {
+		const {token} = event.requestContext.http.path.match(permalinkPath).groups;
 
 		const permalink = await dynamodb.getItem({
 			TableName: process.env.TABLE,
@@ -81,7 +81,7 @@ module.exports.handler = async (event) => {
 				Location: file,
 			},
 		};
-	} else if (event.path === "/create_permalink" && event.httpMethod === "POST" && event.body) {
+	} else if (event.requestContext.http.path === "/create_permalink" && event.requestContext.http.method === "POST" && event.body) {
 		const {key} = JSON.parse(event.body);
 
 		// important!
@@ -103,8 +103,8 @@ module.exports.handler = async (event) => {
 		return {
 			statusCode: 200,
 		};
-	} else if (event.path.match(revokePermalinkPath) && event.httpMethod === "PUT") {
-		const {token} = event.path.match(revokePermalinkPath).groups;
+	} else if (event.requestContext.http.path.match(revokePermalinkPath) && event.requestContext.http.method === "PUT") {
+		const {token} = event.requestContext.http.path.match(revokePermalinkPath).groups;
 
 		await dynamodb.deleteItem({
 			TableName: process.env.TABLE,
